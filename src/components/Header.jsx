@@ -1,30 +1,74 @@
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import { AuthContext } from "../providers/AuthProvider"
 import { logOut, signInWithGoogle } from "../service/firebase"
 import dig from 'object-dig';
+
 import { makeStyles } from "@mui/styles"
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
+import { AppBar } from "@mui/material";
+import { Drawer } from "@mui/material";
+import { ListItem } from "@mui/material";
+import { ListItemText } from "@mui/material";
+import { List } from '@mui/material'
+import { red } from '@mui/material/colors';
+import { Toolbar } from '@mui/material';
+import { Typography } from '@mui/material';
+import { Button } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 
-const useStyles = makeStyles({
-  toolbar: {
-    justifyContent: 'space-between',
-  },
-  button: {
-    color: 'black'
-  }
-});
+const useStyles = makeStyles(
+  theme => (
+    {
+      toolBar: {
+        color: '#f44336'
+      },
+      menuButton: {
+        justifyContent: 'space-between',
+      },
+      listItem: {
+        textAlign: "center"
+      },
+      drawerPaper: {
+        marginTop: theme.mixins
+      },
+      drawerModal: {
+        zIndex: theme.zIndex
+      },
+      toolbar: {
+        justifyContent: 'space-between',
+      },
+    }
+  )
+);
 
-export const Header = (props) => {
+export const Header = () => {
   const currentUser = useContext(AuthContext);
+  const classes = useStyles();
+  const [isOpen, setIsOpen] = useState(false);
 
-  // もしログインしていたら
-  const classes = useStyles(props);
+  const toggleDrawer = (open) => {
+    setIsOpen(open);
+  }
+
+  const FullList = () => {
+    const classes = useStyles();
+
+    return (
+      // ドロワーオープン時のリスト
+      <List>
+        <ListItem className={classes.listItem}>
+          <ListItemText>Home</ListItemText>
+        </ListItem>
+        <ListItem className={classes.listItem}>
+          <ListItemText>{ buttonRender()}</ListItemText>
+        </ListItem>
+        <ListItem className={classes.listItem}>
+          <ListItemText>About</ListItemText>
+        </ListItem>
+      </List>
+    );
+  };
+
   const buttonRender = () => {
     let buttonDom
     if( dig(currentUser, 'currentUser', 'uid') ){
@@ -39,23 +83,36 @@ export const Header = (props) => {
     return buttonDom
   }
 
+
   return　(
-      <AppBar position="static">
-        <Toolbar>
+    <>
+      <AppBar position="relative" className={classes.appBar}>
+        <Toolbar className={classes.toolbar}>
+          <Typography variant="h6" color="inherit">
+            REACT TODO
+          </Typography>
           <IconButton
-            size="large"
-            edge="start"
             color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
+            aria-label="Open drawer"
+            className={classes.menuButton}
+            onClick={() => toggleDrawer(!isOpen)}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            TODO
-          </Typography>
-          { buttonRender() }
         </Toolbar>
       </AppBar>
+      <Drawer
+        variant="temporary"
+        anchor="top"
+        open={isOpen}
+        onClose={()=>toggleDrawer(false)}
+        classes={{
+          paper: classes.drawerPaper,
+          modal: classes.drawerModal
+        }}
+      >
+        <FullList />
+      </Drawer>
+    </>
   )
 }
